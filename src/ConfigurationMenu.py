@@ -1,7 +1,7 @@
 import tkinter
 
 from serial import SerialException
-
+import customtkinter as ctk
 from UI import *
 from SerialController import *
 
@@ -95,7 +95,7 @@ class ConfigurationMenu(ctk.CTkTabview):
             tkButton = ctk.CTkButton(self.tab("CONFIGURATION"), fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text=button[0], command=None)
             tkButton.grid(row=buttons.index(button) + 4, column=0, padx=(20, 20), pady=button[1], sticky="nwse")
 
-        self.textbox = ctk.CTkLabel(self, height=100, fg_color=("gray70", "gray10"), corner_radius=5)
+        self.textbox = ctk.CTkLabel(self, height=100, fg_color=("gray70", "gray10"), corner_radius=5, text="Select the settings and press ON")
         self.textbox.grid(row=6, column=0, pady=(10, 0), sticky="nsew")
 
         self._appearance_frame_setup()
