@@ -18,7 +18,7 @@ def get_index_frame(master) -> ctk.CTkFrame:
 class Slave(ctk.CTkFrame):
 
     def __init__(self, master, number_slv: int):
-        super().__init__(master)
+        super().__init__(master, fg_color="transparent")
         self.number_slv = number_slv
         self.values = list()
         self._create_slave()
