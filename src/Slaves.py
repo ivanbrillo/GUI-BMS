@@ -1,6 +1,8 @@
 from Slave import *
 import customtkinter as ctk
 from Constants import *
+from SummaryInfo import *
+from struct import *
 
 
 class Slaves(ctk.CTkFrame):
@@ -10,48 +12,103 @@ class Slaves(ctk.CTkFrame):
 
         self.slaves = list()
         self._setup_slaves_frame()
-        # self._update_gui()
+        self.ui_frame = ui_frame
 
-    def _setup_slaves_frame(self):
+        self.summary_info = SummaryInfo(self)
+        self.summary_info.grid(row=1, column=0, padx=(10, 10), pady=(20, 5), sticky="nsew", columnspan=N_SLAVES + 1)
+
+        self.mode_function = {
+            "Normal Mode": self._update_gui_normal,
+            "Sleep Mode": self._update_gui_sleep,
+            "Balancing Mode": self._update_gui_balancing
+        }
+
+        self._update_gui()
+
+    def _setup_slaves_frame(self) -> None:
         index_frame = get_index_frame(self)
-        index_frame.grid(column=0, row=0, sticky="nsew", rowspan=3)
+        index_frame.grid(column=0, row=0, sticky="nsew")
 
         for i in range(0, N_SLAVES):
             slave = Slave(self, i)
             slave.grid(column=i + 1, row=0, padx=(5, 5 if i == N_SLAVES - 1 else 0), sticky="nsew")
             self.slaves.append(slave)
 
-    # def _update_gui(self):
-    #
-    #
-    #
-    #     if self.switch.get() == 0:
-    #         if self.textbox.cget("text") != "Select a correct Serial Port":
-    #             self.textbox.configure(text="Select the settings and press ON")
-    #
-    #     else:
-    #         self.textbox.configure(text="Selected port is ON and listen")
-    #         if self.mode.get() == "Normal Mode":
-    #             self.update_gui_normal()
-    #         elif self.mode.get() == "Sleep Mode":
-    #             self.update_silent()
-    #         else:
-    #             self.update_bilancing()
-    #
-    #     self.after(UPDATE_FREQ, self._update_gui)
+    def _get_switch(self) -> int:
+        return self.ui_frame.menu.get_switch()
+
+    def _get_mode(self) -> str:
+        return self.ui_frame.menu.get_mode()
+
+    def _get_text(self) -> str:
+        return self.ui_frame.menu.get_text()
+
+    def _set_text(self, message: str) -> None:
+        self.ui_frame.menu.set_text(message)
+
+    def _update_gui(self) -> None:
+
+        if self._get_switch() == 1:
+            self.mode_function[self._get_mode()]()
+
+        self.after(UPDATE_FREQ, self._update_gui)
+
+    def _update_gui_normal(self) -> None:
+        try:
+            packet = self.ui_frame.serial_controller.read_packet()
+            self._update_logic(packet)
+        except TimeoutError:
+            self.ui_frame.menu.error_serial("Device not responding, retry or select another port")
+        except TypeError:
+            self.ui_frame.menu.error_serial("Device not responding, probably disconnected")
+        except struct.error:
+            self.ui_frame.menu.error_serial("Error Unpacking")  # probably host has changed the struct definition
+
+    def _update_gui_sleep(self) -> None:
+        pass
+
+    def _update_gui_balancing(self) -> None:
+        self._update_gui_normal()
+
+    def _update_logic(self, packet: bytes) -> None:
+
+        alive_slaves = 0
+        # max_volt;  min_volt; tot_volt; max_temp; min_temp; tot_temp; max_temp_slave;
+        minmax = list(unpack(FORMAT_MIN_MAX, packet[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
+
+        for i in range(N_SLAVES):
+            cell_value = unpack(FORMAT_SLAVE, packet[i * size_slave: (i + 1) * size_slave])
+            alive_slaves += self.slaves[i].update_slave(cell_value, minmax[0], minmax[1])
+
+        # curr;   last_recv;
+        lem = list(unpack(FORMAT_LEM, packet[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
+
+        minmax.pop()  # remove which slave has the max temp
+        if alive_slaves != 0:
+            minmax[5] /= (alive_slaves * N_TS)  # from tot temp to avg temp
+            minmax.insert(3, minmax[2] / (alive_slaves * N_VS))  # add avg voltage
+        else:
+            minmax[5] = 0
+            minmax.insert(3, 0)
+
+        minmax.append(lem[0])  # add current
+        minmax.append(lem[0] * minmax[2])  # add power
+
+        for i in range(4):
+            minmax[i] /= 10000
+
+        # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
+        for index, value in enumerate(minmax):
+            self.list_info[index].configure(text=str(round(value, 3)))
 
 
+def get_index_frame(master: Slaves) -> ctk.CTkFrame:
+    index_frame = ctk.CTkFrame(master)
+    label = ctk.CTkLabel(index_frame, text="", fg_color="transparent", corner_radius=4, width=52)
+    label.grid(column=0, row=0, sticky="nsew", pady=(17, 5), padx=(5, 5))
 
+    for i in range(0, N_VS + N_TS):
+        label = ctk.CTkLabel(index_frame, text="Cell " + str(i + 1) if i < N_VS else "Tmp " + str(i - N_VS + 1), fg_color=("gray70", "gray25"), corner_radius=4, width=52)
+        label.grid(column=0, row=i + 1, sticky="nsew", pady=(5, 5), padx=(5, 5))
 
-    # try:
-    #     dataIn = self.port.read()
-    # except serial.SerialException as e:
-    #     # There is no new data from serial port
-    #     return None
-    # except TypeError as e:
-    #     # Disconnect of USB->UART occurred
-    #     self.port.close()
-    #     return None
-    # else:
-    #     # Some data was received
-    #     return dataIn
+    return index_frame

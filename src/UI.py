@@ -23,15 +23,13 @@ class UI(ctk.CTk):
 
         self.serial_controller = SerialController()
 
-        self.slaves = Slaves(self)
         self.menu = ConfigurationMenu(self, self.serial_controller)
-        self.summary_info = SummaryInfo(self)
+        self.slaves = Slaves(self)
 
         self._initialize_gui()
 
     def _initialize_gui(self):
         self.menu.grid(row=0, column=0, padx=(20, 20), rowspan=5)
-        self.summary_info.grid(row=2, column=1, padx=(10, 10), pady=(0, 5), sticky="nsew")
         self.slaves.grid(row=0, column=1, padx=(10, 10), pady=(20, 20), sticky="nsew", rowspan=2, ipadx=3)
 
     def _on_closing(self):

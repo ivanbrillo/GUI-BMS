@@ -18,10 +18,12 @@ class ConfigurationMenu(ctk.CTkTabview):
         self._menu_setup()
 
     def _set_mode(self):
-        if self.switch.get() == 0:
+        if self.get_switch() == 0:
             return
-
         self.serial_controller.set_mode(self.mode.get()[0])
+
+    def get_text(self):
+        return self.textbox.cget("text")
 
     def _menu_setup(self):
         self.add("CONFIGURATION")
@@ -63,20 +65,24 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.option_COM.configure(values=connected)
         self.option_COM.set(connected[0])
 
+    def error_serial(self, message: str):
+        self.switch.deselect()
+        self.serial_controller.close()
+        self._get_com()
+        self.set_text(message)
+
     def _switch_event(self):
         if self.switch.get() == 0:
             self.serial_controller.close()
         else:
             if self.option_COM.get() == "No Device Found":
-                self.switch.deselect()
-                self.textbox.configure(text="Select a correct Serial Port")
+                self.error_serial("Select a correct Serial Port")
             else:
                 try:
                     self.serial_controller.open(self.baud_var.get(), self.option_COM.get())
+                    self.set_text("Selected port is ON and is listening")
                 except SerialException:
-                    self.switch.deselect()
-                    self._get_com()
-                    self.textbox.configure(text="Not possible to open that port, please select another one")
+                    self.error_serial("Not possible to open that port, please select another one")
 
     def _configuration_frame(self):
 
@@ -102,4 +108,11 @@ class ConfigurationMenu(ctk.CTkTabview):
 
     def get_switch(self) -> int:
         return self.switch.get()
+
+    def get_mode(self) -> str:
+        return self.mode.get()
+
+    def set_text(self, message: str) -> None:
+        self.textbox.configure(text=message)
+
 
