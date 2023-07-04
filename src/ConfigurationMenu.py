@@ -99,3 +99,7 @@ class ConfigurationMenu(ctk.CTkTabview):
         self.textbox.grid(row=6, column=0, pady=(10, 0), sticky="nsew")
 
         self._appearance_frame_setup()
+
+    def get_switch(self) -> int:
+        return self.switch.get()
+

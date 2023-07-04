@@ -38,8 +38,8 @@ size_precharge = struct.calcsize(FORMAT_PRECHARGE)
 FORMAT_PAYLOAD = FORMAT_SLAVE * N_SLAVES + FORMAT_MIN_MAX + FORMAT_FAN + FORMAT_LEM + FORMAT_ADDITIONAL_INFO + FORMAT_PRECHARGE + "?xxx"  # +computer connected and padding
 size_payload = struct.calcsize(FORMAT_PAYLOAD)
 
-print("SLAVE:" + str(size_slave))
-print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
-print("LEM:" + str(size_lem))
-print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
-print("TOT:" + str(size_payload))
+# print("SLAVE:" + str(size_slave))
+# print("PRECHARGE:" + str(struct.calcsize(FORMAT_PRECHARGE)))
+# print("LEM:" + str(size_lem))
+# print("ADD:" + str(struct.calcsize(FORMAT_ADDITIONAL_INFO)))
+# print("TOT:" + str(size_payload))
