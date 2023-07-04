@@ -35,8 +35,7 @@ class UI(ctk.CTk):
             slaves.append(slave)
 
         self.summary_info = SummaryInfo(self)
-        self.summary_info.grid(row=2, column=1, padx=(10, 10), pady=(0,5), sticky="nsew")
-
+        self.summary_info.grid(row=2, column=1, padx=(10, 10), pady=(0, 5), sticky="nsew")
 
         # try:
     #     dataIn = self.port.read()
@@ -44,7 +43,7 @@ class UI(ctk.CTk):
     #     # There is no new data from serial port
     #     return None
     # except TypeError as e:
-    #     # Disconnect of USB->UART occured
+    #     # Disconnect of USB->UART occurred
     #     self.port.close()
     #     return None
     # else:
