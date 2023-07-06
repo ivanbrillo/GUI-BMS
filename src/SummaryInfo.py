@@ -20,3 +20,9 @@ class SummaryInfo(ctk.CTkFrame):
             info_value = ctk.CTkLabel(self, text="0", fg_color=("gray80", "gray15"), corner_radius=4)
             info_value.grid(column=i, row=1, sticky="nsew", pady=(5, 5), padx=(5, 5))
             self.list_info.append(info_value)
+
+    def update_info(self, infos: list) -> None:
+        # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
+        for index, value in enumerate(infos):
+            self.list_info[index].configure(text=str(round(value, 3)))
+

@@ -1,13 +1,5 @@
-from PIL import Image, ImageTk
-from PIL.ImageTk import PhotoImage
-
-from SerialController import *
 from ConfigurationMenu import *
-from Constants import *
-import customtkinter as ctk
-from Slave import *
-from SummaryInfo import *
-from Slaves import *
+from DataFrame import *
 
 
 class UI(ctk.CTk):
@@ -24,13 +16,13 @@ class UI(ctk.CTk):
         self.serial_controller = SerialController()
 
         self.menu = ConfigurationMenu(self, self.serial_controller)
-        self.slaves = Slaves(self)
+        self.data_frame = DataFrame(self)
 
         self._initialize_gui()
 
     def _initialize_gui(self):
         self.menu.grid(row=0, column=0, padx=(20, 20), rowspan=5)
-        self.slaves.grid(row=0, column=1, padx=(10, 10), pady=(20, 20), sticky="nsew", rowspan=2, ipadx=3)
+        self.data_frame.grid(row=0, column=1, padx=(10, 10), pady=(20, 20), sticky="nsew", rowspan=2, ipadx=3)
 
     def _on_closing(self):
         if self.menu.get_switch() == 1:

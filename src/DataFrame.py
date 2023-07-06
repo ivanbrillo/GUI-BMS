@@ -5,7 +5,7 @@ from SummaryInfo import *
 from struct import *
 
 
-class Slaves(ctk.CTkFrame):
+class DataFrame(ctk.CTkFrame):
 
     def __init__(self, ui_frame):
         super().__init__(ui_frame)
@@ -65,23 +65,33 @@ class Slaves(ctk.CTkFrame):
             self.ui_frame.menu.error_serial("Error Unpacking")  # probably host has changed the struct definition
 
     def _update_gui_sleep(self) -> None:
-        pass
+        for i in range(N_SLAVES):
+            self.slaves[i].update_slave([0] * (N_VS + N_TS), 0, 0)
+        self.summary_info.update_info([0] * 9)
 
     def _update_gui_balancing(self) -> None:
         self._update_gui_normal()
 
     def _update_logic(self, packet: bytes) -> None:
 
-        alive_slaves = 0
         # max_volt;  min_volt; tot_volt; max_temp; min_temp; tot_temp; max_temp_slave;
         minmax = list(unpack(FORMAT_MIN_MAX, packet[size_slave * N_SLAVES: size_slave * N_SLAVES + size_minmax]))
+        alive_slaves = self._update_slaves(packet, minmax[0], minmax[1])
 
+        self._update_infos(packet, minmax, alive_slaves)
+
+    def _update_slaves(self, packet: bytes, max_volt: float, min_volt: float) -> int:
+
+        alive_slaves = 0
         for i in range(N_SLAVES):
             cell_value = unpack(FORMAT_SLAVE, packet[i * size_slave: (i + 1) * size_slave])
-            alive_slaves += self.slaves[i].update_slave(cell_value, minmax[0], minmax[1])
+            alive_slaves += self.slaves[i].update_slave(cell_value, max_volt, min_volt)
 
+        return alive_slaves
+
+    def _update_infos(self, packet: bytes, minmax: list, alive_slaves: int):
         # curr;   last_recv;
-        lem = list(unpack(FORMAT_LEM, packet[size_slave * N_SLAVES + size_minmax: size_slave * N_SLAVES + size_minmax + size_lem]))
+        lem = list(unpack(FORMAT_LEM, packet[size_slave * N_SLAVES + size_minmax + size_fan: size_slave * N_SLAVES + size_minmax + size_fan + size_lem]))
 
         minmax.pop()  # remove which slave has the max temp
         if alive_slaves != 0:
@@ -91,18 +101,17 @@ class Slaves(ctk.CTkFrame):
             minmax[5] = 0
             minmax.insert(3, 0)
 
-        minmax.append(lem[0])  # add current
-        minmax.append(lem[0] * minmax[2])  # add power
+        minmax.append(lem[0] / 1000.0)  # add current
+        minmax.append((lem[0] / 1000.0) * minmax[2])  # add power
 
         for i in range(4):
             minmax[i] /= 10000
 
-        # list_info: ["MAX VOLT", "MIN VOLT", "TOT VOLT", "AVG VOLT", "MAX TEMP", "MIN TEMP", "AVG TEMP", "CURRENT", "TOT POWER"]
-        for index, value in enumerate(minmax):
-            self.list_info[index].configure(text=str(round(value, 3)))
+        self.summary_info.update_info(minmax)
 
 
-def get_index_frame(master: Slaves) -> ctk.CTkFrame:
+# return the index frame of the slaves table
+def get_index_frame(master: DataFrame) -> ctk.CTkFrame:
     index_frame = ctk.CTkFrame(master)
     label = ctk.CTkLabel(index_frame, text="", fg_color="transparent", corner_radius=4, width=52)
     label.grid(column=0, row=0, sticky="nsew", pady=(17, 5), padx=(5, 5))

@@ -5,7 +5,7 @@ N_TS = 3
 N_SLAVES = 16
 
 UPDATE_FREQ = 300
-MIN_ERR = 30
+MIN_ERR = 10
 
 # H -> half_word (2 Byte),  ? -> bool (1 Byte),  c -> char (1 Byte), I -> Unsigned int  B -> uint8, x -> pad byte
 # https://docs.python.org/3/library/struct.html
@@ -23,8 +23,8 @@ size_minmax = struct.calcsize(FORMAT_MIN_MAX)
 FORMAT_FAN = "H?x"
 size_fan = struct.calcsize(FORMAT_FAN)
 
-# uint32_t curr;  uint32_t last_recv;
-FORMAT_LEM = "I" * 2
+# int32_t curr;  uint32_t last_recv;
+FORMAT_LEM = "iI"
 size_lem = struct.calcsize(FORMAT_LEM)
 
 #   bool sdc_closed;  uint32_t fault_volt_tmstp;  uint32_t fault_temp_tmstp;  Mode mode (int 32 bit);

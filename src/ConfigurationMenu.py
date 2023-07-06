@@ -54,7 +54,7 @@ class ConfigurationMenu(ctk.CTkTabview):
         appearance_frame = ctk.CTkFrame(self)
         appearance_frame.grid(row=7, column=0, pady=(6, 0), sticky="nsew")
         appearance_frame.grid_columnconfigure(0, weight=1)
-        option = ctk.CTkOptionMenu(appearance_frame, values=["Dark", "Light", "System"], command=lambda app_mode: ctk.set_appearance_mode(app_mode))
+        option = ctk.CTkOptionMenu(appearance_frame, values=["System", "Dark", "Light"], command=lambda app_mode: ctk.set_appearance_mode(app_mode))
         option.grid(pady=(8, 8))
 
     def _get_com(self):
